@@ -95,7 +95,7 @@ typedef NSUInteger ASDataControllerAnimationOptions;
  * Controller to layout data in background, and managed data updating.
  *
  * All operations are asynchronous and thread safe. You can call it from background thread (it is recommendated) and the data
- * will be updated asynchronously. The dataSource must be updated to reflect the changes before these methods has been called.
+ * will be updated asynchronously. The dataSource must be updated to reflect the changes before these methods have been called.
  * For each data updatin, the corresponding methods in delegate will be called.
  */
 @protocol ASFlowLayoutControllerDataSource;
