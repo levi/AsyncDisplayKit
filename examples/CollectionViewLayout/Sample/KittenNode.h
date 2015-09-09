@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface CHTCollectionViewWaterfallCell : UICollectionViewCell
-@property (nonatomic, strong) UIImageView *imageView;
+@interface KittenNode : ASCellNode
+
+- (instancetype)initWithKittenOfSize:(CGSize)size;
+
 @end

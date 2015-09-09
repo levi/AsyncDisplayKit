@@ -9,6 +9,5 @@
 #import <UIKit/UIKit.h>
 #import "CHTCollectionViewWaterfallLayout.h"
 
-@interface ViewController : UIViewController <UICollectionViewDataSource, CHTCollectionViewDelegateWaterfallLayout>
-@property (nonatomic, strong) IBOutlet UICollectionView *collectionView;
+@interface ViewController : UIViewController <ASCollectionViewDataSource, ASCollectionViewDelegate>
 @end
