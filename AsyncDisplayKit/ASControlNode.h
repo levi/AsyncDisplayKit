@@ -8,6 +8,7 @@
 
 #import <AsyncDisplayKit/ASDisplayNode.h>
 
+NS_ASSUME_NONNULL_BEGIN
 
 /**
   @abstract Kinds of events possible for control nodes.
@@ -107,3 +108,5 @@ typedef NS_OPTIONS(NSUInteger, ASControlNodeEvent)
 - (void)sendActionsForControlEvents:(ASControlNodeEvent)controlEvents withEvent:(UIEvent *)event;
 
 @end
+
+NS_ASSUME_NONNULL_END

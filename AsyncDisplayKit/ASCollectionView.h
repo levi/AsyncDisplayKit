@@ -18,6 +18,7 @@
 @protocol ASCollectionViewDataSource;
 @protocol ASCollectionViewDelegate;
 
+NS_ASSUME_NONNULL_BEGIN
 
 /**
  * Node-based collection view.
@@ -27,7 +28,7 @@
  */
 @interface ASCollectionView : UICollectionView
 
-- (instancetype)initWithCollectionViewLayout:(UICollectionViewLayout *)layout;
+- (instancetype)initWithCollectionViewLayout:(nullable UICollectionViewLayout *)layout;
 
 @property (nonatomic, weak) id<ASCollectionViewDataSource> asyncDataSource;
 @property (nonatomic, weak) id<ASCollectionViewDelegate> asyncDelegate;       // must not be nil
@@ -71,7 +72,7 @@
  * we will lock the data source through `collectionViewLockDataSource`, and unlock it by `collectionViewUnlockDataSource` after the data fetching.
  * The application should not update the data source while the data source is locked, to keep data consistence.
  */
-- (instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(UICollectionViewLayout *)layout asyncDataFetching:(BOOL)asyncDataFetchingEnabled;
+- (instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(nullable UICollectionViewLayout *)layout asyncDataFetching:(BOOL)asyncDataFetchingEnabled;
 
 /**
  * The number of screens left to scroll before the delegate -collectionView:beginBatchFetchingWithContext: is called.
@@ -90,7 +91,7 @@
  *                    Boolean parameter that contains the value YES if all of the related animations completed successfully or 
  *                    NO if they were interrupted. This parameter may be nil. If supplied, the block is run on the main thread.
  */
-- (void)performBatchAnimated:(BOOL)animated updates:(void (^)())updates completion:(void (^)(BOOL))completion;
+- (void)performBatchAnimated:(BOOL)animated updates:(void (^ __nullable)())updates completion:(void (^ __nullable)(BOOL))completion;
 
 /**
  *  Perform a batch of updates asynchronously.  This method must be called from the main thread.
@@ -101,7 +102,7 @@
  *                    Boolean parameter that contains the value YES if all of the related animations completed successfully or
  *                    NO if they were interrupted. This parameter may be nil. If supplied, the block is run on the main thread.
  */
-- (void)performBatchUpdates:(void (^)())updates completion:(void (^)(BOOL))completion;
+- (void)performBatchUpdates:(void (^ __nullable)())updates completion:(void (^ __nullable)(BOOL))completion;
 
 /**
  * Reload everything from scratch, destroying the working range and all cached nodes.
@@ -110,7 +111,7 @@
  * the main thread.
  * @warning This method is substantially more expensive than UICollectionView's version.
  */
-- (void)reloadDataWithCompletion:(void (^)())completion;
+- (void)reloadDataWithCompletion:(void (^ __nullable)())completion;
 
 /**
  * Reload everything from scratch, destroying the working range and all cached nodes.
@@ -169,7 +170,7 @@
  * @discussion This method must be called from the main thread. The asyncDataSource must be updated to reflect the changes
  * before this method is called.
  */
-- (void)insertItemsAtIndexPaths:(NSArray *)indexPaths;
+- (void)insertItemsAtIndexPaths:(NSArray<NSIndexPath *> *)indexPaths;
 
 /**
  * Deletes the items specified by an array of index paths.
@@ -179,7 +180,7 @@
  * @discussion This method must be called from the main thread. The asyncDataSource must be updated to reflect the changes
  * before this method is called.
  */
-- (void)deleteItemsAtIndexPaths:(NSArray *)indexPaths;
+- (void)deleteItemsAtIndexPaths:(NSArray<NSIndexPath *> *)indexPaths;
 
 /**
  * Reloads the specified items.
@@ -189,7 +190,7 @@
  * @discussion This method must be called from the main thread. The asyncDataSource must be updated to reflect the changes
  * before this method is called.
  */
-- (void)reloadItemsAtIndexPaths:(NSArray *)indexPaths;
+- (void)reloadItemsAtIndexPaths:(NSArray<NSIndexPath *> *)indexPaths;
 
 /**
  * Moves the item at a specified location to a destination location.
@@ -210,14 +211,14 @@
  *
  * @returns a node for display at this indexpath.
  */
-- (ASCellNode *)nodeForItemAtIndexPath:(NSIndexPath *)indexPath;
+- (nullable ASCellNode *)nodeForItemAtIndexPath:(NSIndexPath *)indexPath;
 
 /**
  * Similar to -visibleCells.
  *
  * @returns an array containing the nodes being displayed on screen.
  */
-- (NSArray *)visibleNodes;
+- (NSArray<__kindof ASCellNode *> *)visibleNodes;
 
 /**
  * Query the sized node at `indexPath` for its calculatedSize.
@@ -353,3 +354,5 @@
 @property (nonatomic, assign) ASRangeTuningParameters rangeTuningParameters ASDISPLAYNODE_DEPRECATED;
 
 @end
+
+NS_ASSUME_NONNULL_END

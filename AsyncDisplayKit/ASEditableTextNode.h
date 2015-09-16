@@ -8,6 +8,7 @@
 
 #import <AsyncDisplayKit/ASDisplayNode.h>
 
+NS_ASSUME_NONNULL_BEGIN
 
 @protocol ASEditableTextNodeDelegate;
 
@@ -136,3 +137,5 @@
 
 
 @end
+
+NS_ASSUME_NONNULL_END

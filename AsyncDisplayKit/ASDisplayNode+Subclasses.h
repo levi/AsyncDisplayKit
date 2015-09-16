@@ -13,6 +13,8 @@
 #import <AsyncDisplayKit/ASDisplayNode.h>
 #import <AsyncDisplayKit/ASThread.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @class ASLayoutSpec;
 
 /**
@@ -305,7 +307,7 @@
  * @param touches A set of UITouch instances.
  * @param event A UIEvent associated with the touch.
  */
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesBegan:(NSSet *)touches withEvent:(nullable UIEvent *)event;
 
 /**
  * @abstract Tells the node when touches moved in its view.
@@ -313,7 +315,7 @@
  * @param touches A set of UITouch instances.
  * @param event A UIEvent associated with the touch.
  */
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesMoved:(NSSet *)touches withEvent:(nullable UIEvent *)event;
 
 /**
  * @abstract Tells the node when touches ended in its view.
@@ -321,7 +323,7 @@
  * @param touches A set of UITouch instances.
  * @param event A UIEvent associated with the touch.
  */
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesEnded:(NSSet *)touches withEvent:(nullable UIEvent *)event;
 
 /**
  * @abstract Tells the node when touches was cancelled in its view.
@@ -329,7 +331,7 @@
  * @param touches A set of UITouch instances.
  * @param event A UIEvent associated with the touch.
  */
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesCancelled:(NSSet *)touches withEvent:(nullable UIEvent *)event;
 
 
 /** @name Managing Gesture Recognizers */
@@ -359,7 +361,7 @@
  * 1) allows sending events to plain UIViews that don't have attached nodes,
  * 2) hitTest: is never called before the views are created.
  */
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
+- (UIView *)hitTest:(CGPoint)point withEvent:(nullable UIEvent *)event;
 
 
 /** @name Observing node-related changes */
@@ -430,6 +432,8 @@
 // but it's considered private API for now and its use should not be encouraged.
 - (ASDisplayNode *)_supernodeWithClass:(Class)supernodeClass;
 @end
+
+NS_ASSUME_NONNULL_END
 
 #define ASDisplayNodeAssertThreadAffinity(viewNode)   ASDisplayNodeAssert(!viewNode || ASDisplayNodeThreadIsMain() || !(viewNode).nodeLoaded, @"Incorrect display node thread affinity")
 #define ASDisplayNodeCAssertThreadAffinity(viewNode) ASDisplayNodeCAssert(!viewNode || ASDisplayNodeThreadIsMain() || !(viewNode).nodeLoaded, @"Incorrect display node thread affinity")

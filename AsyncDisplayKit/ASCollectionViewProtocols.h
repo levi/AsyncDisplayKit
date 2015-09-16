@@ -6,6 +6,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+NS_ASSUME_NONNULL_BEGIN
+
 /**
  * This is a subset of UICollectionViewDataSource.
  *
@@ -54,3 +56,5 @@
 - (void)collectionView:(UICollectionView *)collectionView performAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender;
 
 @end
+
+NS_ASSUME_NONNULL_END

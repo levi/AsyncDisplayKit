@@ -15,22 +15,24 @@
 
 #import <AsyncDisplayKit/ASLayoutable.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @class ASDisplayNode;
 
 /**
  * UIView creation block. Used to create the backing view of a new display node.
  */
-typedef UIView *(^ASDisplayNodeViewBlock)();
+typedef UIView * _Nonnull (^ASDisplayNodeViewBlock)();
 
 /**
  * CALayer creation block. Used to create the backing layer of a new display node.
  */
-typedef CALayer *(^ASDisplayNodeLayerBlock)();
+typedef CALayer * _Nonnull (^ASDisplayNodeLayerBlock)();
 
 /**
  * ASDisplayNode loaded callback block. This block is called BEFORE the -didLoad method and is always called on the main thread.
  */
-typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
+typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode * _Nullable node);
 
 /**
  * An `ASDisplayNode` is an abstraction over `UIView` and `CALayer` that allows you to perform calculations about a view
@@ -60,7 +62,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @return An ASDisplayNode instance whose view will be a subclass that enables asynchronous rendering, and passes 
  * through -layout and touch handling methods.
  */
-- (id)init;
+- (nullable instancetype)init;
 
 
 /**
@@ -71,7 +73,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @return An ASDisplayNode instance that loads its view with the given block that is guaranteed to run on the main
  * queue. The view will render synchronously and -layout and touch handling methods on the node will not be called.
  */
-- (id)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock;
+- (nullable instancetype)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock;
 
 /**
  * @abstract Alternative initializer with a block to create the backing view.
@@ -82,7 +84,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @return An ASDisplayNode instance that loads its view with the given block that is guaranteed to run on the main
  * queue. The view will render synchronously and -layout and touch handling methods on the node will not be called.
  */
-- (id)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock;
+- (nullable instancetype)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock didLoadBlock:(nullable ASDisplayNodeDidLoadBlock)didLoadBlock;
 
 /**
  * @abstract Alternative initializer with a block to create the backing layer.
@@ -92,7 +94,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @return An ASDisplayNode instance that loads its layer with the given block that is guaranteed to run on the main
  * queue. The layer will render synchronously and -layout and touch handling methods on the node will not be called.
  */
-- (id)initWithLayerBlock:(ASDisplayNodeLayerBlock)layerBlock;
+- (nullable instancetype)initWithLayerBlock:(ASDisplayNodeLayerBlock)layerBlock;
 
 /**
  * @abstract Alternative initializer with a block to create the backing layer.
@@ -103,7 +105,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @return An ASDisplayNode instance that loads its layer with the given block that is guaranteed to run on the main
  * queue. The layer will render synchronously and -layout and touch handling methods on the node will not be called.
  */
-- (id)initWithLayerBlock:(ASDisplayNodeLayerBlock)layerBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock;
+- (nullable instancetype)initWithLayerBlock:(ASDisplayNodeLayerBlock)layerBlock didLoadBlock:(nullable ASDisplayNodeDidLoadBlock)didLoadBlock;
 
 
 /** @name Properties */
@@ -129,7 +131,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @warning The first access to it must be on the main thread, and should only be used on the main thread thereafter as 
  * well.
  */
-@property (nonatomic, readonly, retain) UIView *view;
+@property (nonatomic, readonly, retain, nullable) UIView *view;
 
 /** 
  * @abstract Returns whether a node's backing view or layer is loaded.
@@ -154,7 +156,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @warning The first access to it must be on the main thread, and should only be used on the main thread thereafter as 
  * well.
  */
-@property (nonatomic, readonly, retain) CALayer *layer;
+@property (nonatomic, readonly, retain, nullable) CALayer *layer;
 
 
 /** @name Managing dimensions */
@@ -194,7 +196,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  *
  * @see [ASDisplayNode(Subclassing) calculateLayoutThatFits:]
  */
-- (ASLayout *)measureWithSizeRange:(ASSizeRange)constrainedSize;
+- (nullable ASLayout *)measureWithSizeRange:(ASSizeRange)constrainedSize;
 
 /** 
  * @abstract Return the calculated size.
@@ -295,7 +297,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
 /** 
  * @abstract The receiver's immediate subnodes.
  */
-@property (nonatomic, readonly, retain) NSArray *subnodes;
+@property (nonatomic, readonly, retain, nullable) NSArray<ASDisplayNode *> *subnodes;
 
 /** 
  * @abstract The receiver's supernode.
@@ -454,7 +456,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  *
  * @return YES if point is inside the receiver's bounds; otherwise, NO.
  */
-- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event;
+- (BOOL)pointInside:(CGPoint)point withEvent:(nullable UIEvent *)event;
 
 
 /** @name Converting Between View Coordinate Systems */
@@ -468,7 +470,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  *
  * @return The point converted to the coordinate system of node.
  */
-- (CGPoint)convertPoint:(CGPoint)point toNode:(ASDisplayNode *)node;
+- (CGPoint)convertPoint:(CGPoint)point toNode:(nullable ASDisplayNode *)node;
 
 
 /** 
@@ -479,7 +481,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  *
  * @return The point converted to the local coordinate system (bounds) of the receiver.
  */
-- (CGPoint)convertPoint:(CGPoint)point fromNode:(ASDisplayNode *)node;
+- (CGPoint)convertPoint:(CGPoint)point fromNode:(nullable ASDisplayNode *)node;
 
 
 /** 
@@ -490,7 +492,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  *
  * @return The converted rectangle.
  */
-- (CGRect)convertRect:(CGRect)rect toNode:(ASDisplayNode *)node;
+- (CGRect)convertRect:(CGRect)rect toNode:(nullable ASDisplayNode *)node;
 
 /** 
  * @abstract Converts a rectangle from the coordinate system of another node to that of the receiver.
@@ -500,7 +502,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  *
  * @return The converted rectangle.
  */
-- (CGRect)convertRect:(CGRect)rect fromNode:(ASDisplayNode *)node;
+- (CGRect)convertRect:(CGRect)rect fromNode:(nullable ASDisplayNode *)node;
 
 /** @name UIResponder methods */
 
@@ -510,7 +512,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
 - (BOOL)canResignFirstResponder;                                            // default==YES
 - (BOOL)resignFirstResponder;                                               // default==NO (no-op)
 - (BOOL)isFirstResponder;
-- (BOOL)canPerformAction:(SEL)action withSender:(id)sender;
+- (BOOL)canPerformAction:(nullable SEL)action withSender:(nullable id)sender;
 
 @end
 
@@ -562,7 +564,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  */
 - (void)setNeedsLayout;
 
-@property (atomic, retain)           id contents;                           // default=nil
+@property (atomic, retain, nullable) id contents;                           // default=nil
 @property (atomic, assign)           BOOL clipsToBounds;                    // default==NO
 @property (atomic, getter=isOpaque)  BOOL opaque;                           // default==YES
 
@@ -583,7 +585,7 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
 @property (atomic, assign)           CGFloat contentsScale;                 // default=1.0f. See @contentsScaleForDisplay for more info
 @property (atomic, assign)           CATransform3D transform;               // default=CATransform3DIdentity
 @property (atomic, assign)           CATransform3D subnodeTransform;        // default=CATransform3DIdentity
-@property (atomic, copy)             NSString *name;                        // default=nil. Use this to tag your layers in the server-recurse-description / pca or for your own purposes
+@property (atomic, copy, nullable)   NSString *name;                        // default=nil. Use this to tag your layers in the server-recurse-description / pca or for your own purposes
 
 /**
  * @abstract The node view's background color.
@@ -591,9 +593,9 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @discussion In contrast to UIView, setting a transparent color will not set opaque = NO.
  * This only affects nodes that implement +drawRect like ASTextNode.
 */
-@property (atomic, retain)           UIColor *backgroundColor;              // default=nil
+@property (atomic, retain, nullable)        UIColor *backgroundColor;              // default=nil
 
-@property (atomic, retain)           UIColor *tintColor;                    // default=Blue
+@property (atomic, retain, null_resettable) UIColor *tintColor;                    // default=Blue
 - (void)tintColorDidChange;     // Notifies the node when the tintColor has changed.
 
 /**
@@ -608,27 +610,25 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
 
 @property (atomic, assign, getter=isUserInteractionEnabled) BOOL userInteractionEnabled; // default=YES (NO for layer-backed nodes)
 @property (atomic, assign, getter=isExclusiveTouch) BOOL exclusiveTouch;    // default=NO
-@property (atomic, assign)           CGColorRef shadowColor;                // default=opaque rgb black
+@property (atomic, assign, nullable) CGColorRef shadowColor;                // default=opaque rgb black
 @property (atomic, assign)           CGFloat shadowOpacity;                 // default=0.0
 @property (atomic, assign)           CGSize shadowOffset;                   // default=(0, -3)
 @property (atomic, assign)           CGFloat shadowRadius;                  // default=3
 @property (atomic, assign)           CGFloat borderWidth;                   // default=0
-@property (atomic, assign)           CGColorRef borderColor;                // default=opaque rgb black
+@property (atomic, assign, nullable) CGColorRef borderColor;                // default=opaque rgb black
 
 // Accessibility support
-@property (atomic, assign)           BOOL isAccessibilityElement;
-@property (atomic, copy)             NSString *accessibilityLabel;
-@property (atomic, copy)             NSString *accessibilityHint;
-@property (atomic, copy)             NSString *accessibilityValue;
-@property (atomic, assign)           UIAccessibilityTraits accessibilityTraits;
-@property (atomic, assign)           CGRect accessibilityFrame;
-@property (atomic, retain)           NSString *accessibilityLanguage;
-@property (atomic, assign)           BOOL accessibilityElementsHidden;
-@property (atomic, assign)           BOOL accessibilityViewIsModal;
-@property (atomic, assign)           BOOL shouldGroupAccessibilityChildren;
-
-// Accessibility identification support
-@property (nonatomic, copy)          NSString *accessibilityIdentifier;
+@property (atomic, assign)            BOOL isAccessibilityElement;
+@property (atomic, copy, nullable)    NSString *accessibilityLabel;
+@property (atomic, copy, nullable)    NSString *accessibilityHint;
+@property (atomic, copy, nullable)    NSString *accessibilityValue;
+@property (atomic, assign)            UIAccessibilityTraits accessibilityTraits;
+@property (atomic, assign)            CGRect accessibilityFrame;
+@property (atomic, retain, nullable)  NSString *accessibilityLanguage;
+@property (atomic, assign)            BOOL accessibilityElementsHidden;
+@property (atomic, assign)            BOOL accessibilityViewIsModal;
+@property (nonatomic, copy, nullable) NSString *accessibilityIdentifier;
+@property (atomic, assign)            BOOL shouldGroupAccessibilityChildren;
 
 @end
 
@@ -666,3 +666,5 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
 @property (nonatomic, assign) BOOL placeholderFadesOut ASDISPLAYNODE_DEPRECATED;
 
 @end
+
+NS_ASSUME_NONNULL_END
