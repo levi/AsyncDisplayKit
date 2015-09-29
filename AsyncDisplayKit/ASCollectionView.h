@@ -18,7 +18,6 @@
 @protocol ASCollectionViewDataSource;
 @protocol ASCollectionViewDelegate;
 
-
 /**
  * Node-based collection view.
  *

@@ -8,6 +8,7 @@
 
 #import "ASCollectionView.h"
 
+#import <objc/runtime.h>
 #import "ASAssert.h"
 #import "ASCollectionViewLayoutController.h"
 #import "ASRangeController.h"
@@ -19,6 +20,11 @@
 
 const static NSUInteger kASCollectionViewAnimationNone = UITableViewRowAnimationNone;
 
+@interface UICollectionViewLayout ()
+
+- (void)_invalidateLayoutUsingContext:(UICollectionViewLayoutInvalidationContext *)context;
+
+@end
 
 #pragma mark -
 #pragma mark Proxying.
@@ -47,25 +53,36 @@ static BOOL _isInterceptedSelector(SEL sel)
           sel == @selector(collectionView:didEndDisplayingCell:forItemAtIndexPath:) ||
 
           // used for batch fetching API
-          sel == @selector(scrollViewWillEndDragging:withVelocity:targetContentOffset:)
+          sel == @selector(scrollViewWillEndDragging:withVelocity:targetContentOffset:) ||
+          
+          // intercept layout invalidation
+//          sel == @selector(invalidateLayoutWithContext:)
+          sel == @selector(_invalidateLayoutUsingContext:)
           );
 }
 
+@protocol _ASCollectionViewClassProxy <NSObject>
++ (instancetype)alloc;
++ (Class)proxiedClass;
+@end
 
 /**
  * Stand-in for UICollectionViewDataSource and UICollectionViewDelegate.  Any method calls we intercept are routed to ASCollectionView;
  * everything else leaves AsyncDisplayKit safely and arrives at the original intended data source and delegate.
  */
-@interface _ASCollectionViewProxy : NSProxy
-- (instancetype)initWithTarget:(id<NSObject>)target interceptor:(ASCollectionView *)interceptor;
+@interface _ASCollectionViewProxy : NSProxy <_ASCollectionViewClassProxy>
+- (instancetype)initWithTarget:(id)target interceptor:(ASCollectionView *)interceptor;
+
+- (id)target;
+
 @end
 
 @implementation _ASCollectionViewProxy {
-  id<NSObject> __weak _target;
+  id __weak _target;
   ASCollectionView * __weak _interceptor;
 }
 
-- (instancetype)initWithTarget:(id<NSObject>)target interceptor:(ASCollectionView *)interceptor
+- (instancetype)initWithTarget:(id)target interceptor:(ASCollectionView *)interceptor
 {
   // -[NSProxy init] is undefined
   if (!self) {
@@ -81,6 +98,25 @@ static BOOL _isInterceptedSelector(SEL sel)
   return self;
 }
 
++ (Class)proxiedClass {
+  return nil;
+}
+
++ (BOOL)resolveClassMethod:(SEL)name
+{
+  if ([[self proxiedClass] respondsToSelector:name]) {
+    // Fetch the implementation from the proxied class' metaclass
+    Class proxiedMetaClass = objc_getMetaClass([NSStringFromClass([self proxiedClass]) cStringUsingEncoding:NSUTF8StringEncoding]);
+    Method method = class_getClassMethod(proxiedMetaClass, name);
+
+    // Add the implementation to this class' metaclass
+    Class metaClass = objc_getMetaClass([NSStringFromClass(self) cStringUsingEncoding:NSUTF8StringEncoding]);
+    class_addMethod(metaClass, name, method_getImplementation(method), method_getTypeEncoding(method));
+    return YES;
+  }
+  return NO;
+}
+
 - (BOOL)respondsToSelector:(SEL)aSelector
 {
   ASDisplayNodeAssert(_target, @"target must not be nil"); // catch weak ref's being nilled early
@@ -93,7 +129,7 @@ static BOOL _isInterceptedSelector(SEL sel)
 {
   ASDisplayNodeAssert(_target, @"target must not be nil"); // catch weak ref's being nilled early
   ASDisplayNodeAssert(_interceptor, @"interceptor must not be nil");
-
+  
   if (_isInterceptedSelector(aSelector)) {
     return _interceptor;
   }
@@ -101,8 +137,42 @@ static BOOL _isInterceptedSelector(SEL sel)
   return [_target respondsToSelector:aSelector] ? _target : nil;
 }
 
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
+{
+  return [_target methodSignatureForSelector:sel];
+}
+
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+}
+
+- (id)target
+{
+  return _target;
+}
+
 @end
 
+static inline Class<_ASCollectionViewClassProxy> ASCollectionViewProxyForClass(Class proxiedClass)
+{
+  NSString *className = [NSString stringWithFormat:@"_ASCollectionViewProxy_%@", NSStringFromClass(proxiedClass)];
+
+  Class proxySubclass;
+  if ((proxySubclass = NSClassFromString(className)))
+    return proxySubclass;
+
+  const char *cClassName = [className cStringUsingEncoding:NSUTF8StringEncoding];
+  // Register new proxy specific to the given class
+  proxySubclass = objc_allocateClassPair([_ASCollectionViewProxy class], cClassName, 0);
+  objc_registerClassPair(proxySubclass);
+  
+  // Store the proxied class for proxying class methods
+  IMP classIMP = imp_implementationWithBlock(^(id s) { return [proxiedClass class]; });
+  Class metaClass = objc_getMetaClass(cClassName);
+  class_addMethod(metaClass, @selector(proxiedClass), (IMP)classIMP, "@:@");
+
+  return proxySubclass;
+}
 
 #pragma mark -
 #pragma mark ASCollectionView.
@@ -110,6 +180,7 @@ static BOOL _isInterceptedSelector(SEL sel)
 @interface ASCollectionView () <ASRangeControllerDelegate, ASDataControllerSource> {
   _ASCollectionViewProxy *_proxyDataSource;
   _ASCollectionViewProxy *_proxyDelegate;
+  _ASCollectionViewProxy *_proxyLayout;
 
   ASDataController *_dataController;
   ASRangeController *_rangeController;
@@ -186,6 +257,10 @@ static BOOL _isInterceptedSelector(SEL sel)
   
   self.backgroundColor = [UIColor whiteColor];
   
+  if (layout != nil) {
+    self.collectionViewLayout = layout;
+  }
+  
   [self registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"_ASCollectionViewCell"];
   
   return self;
@@ -241,10 +316,10 @@ static BOOL _isInterceptedSelector(SEL sel)
     _asyncDataSourceImplementsConstrainedSizeForNode = NO;
   } else {
     _asyncDataSource = asyncDataSource;
-    // TODO: Support supplementary views with ASCollectionView.
-    if ([_asyncDataSource respondsToSelector:@selector(collectionView:viewForSupplementaryElementOfKind:atIndexPath:)]) {
-      ASDisplayNodeAssert(NO, @"ASCollectionView is planned to support supplementary views by September 2015.  You can work around this issue by using standard items.");
-    }
+//    // TODO: Support supplementary views with ASCollectionView.
+//    if ([_asyncDataSource respondsToSelector:@selector(collectionView:viewForSupplementaryElementOfKind:atIndexPath:)]) {
+//      ASDisplayNodeAssert(NO, @"ASCollectionView is planned to support supplementary views by September 2015.  You can work around this issue by using standard items.");
+//    }
     _proxyDataSource = [[_ASCollectionViewProxy alloc] initWithTarget:_asyncDataSource interceptor:self];
     super.dataSource = (id<UICollectionViewDataSource>)_proxyDataSource;
     _asyncDataSourceImplementsConstrainedSizeForNode = ([_asyncDataSource respondsToSelector:@selector(collectionView:constrainedSizeForNodeAtIndexPath:)] ? 1 : 0);
@@ -271,6 +346,13 @@ static BOOL _isInterceptedSelector(SEL sel)
     super.delegate = (id<UICollectionViewDelegate>)_proxyDelegate;
     _asyncDelegateImplementsInsetSection = ([_asyncDelegate respondsToSelector:@selector(collectionView:layout:insetForSectionAtIndex:)] ? 1 : 0);
   }
+}
+
+- (void)setCollectionViewLayout:(UICollectionViewLayout *)collectionViewLayout
+{
+  Class<_ASCollectionViewClassProxy> proxyClass = ASCollectionViewProxyForClass([collectionViewLayout class]);
+  _proxyLayout = [[proxyClass alloc] initWithTarget:collectionViewLayout interceptor:self];
+  super.collectionViewLayout = (UICollectionViewLayout *)_proxyLayout;
 }
 
 - (void)setTuningParameters:(ASRangeTuningParameters)tuningParameters forRangeType:(ASLayoutRangeType)rangeType
@@ -503,9 +585,30 @@ static BOOL _isInterceptedSelector(SEL sel)
   [super layoutSubviews];
 }
 
+#pragma mark - Collection View Layout Management
 
-#pragma mark -
-#pragma mark Batch Fetching
+//- (void)invalidateLayoutWithContext:(UICollectionViewFlowLayoutInvalidationContext *)context
+//{
+//  []
+//}
+
+- (void)_invalidateLayoutUsingContext:(UICollectionViewLayoutInvalidationContext *)context
+{
+  NSLog(@"Invalidating Layout With Context: %@", context);
+  if (context.invalidateEverything) {
+    NSLog(@"Invalidate Everything");
+  }
+  
+  if (context.invalidateDataSourceCounts) {
+    NSLog(@"Invalidate counts from data source");
+  }
+  
+  NSLog(@"Invalidated items: %lu", context.invalidatedItemIndexPaths.count);
+  NSLog(@"Invalidated supplementaries: %lu", context.invalidatedSupplementaryIndexPaths.count);
+  [((UICollectionViewLayout *)_proxyLayout.target) _invalidateLayoutUsingContext:context];
+}
+
+#pragma mark - Batch Fetching
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
 {
@@ -542,7 +645,6 @@ static BOOL _isInterceptedSelector(SEL sel)
     });
   }
 }
-
 
 #pragma mark - ASDataControllerSource
 
