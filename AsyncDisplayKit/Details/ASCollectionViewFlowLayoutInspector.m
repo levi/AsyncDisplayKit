@@ -15,6 +15,7 @@
 #import "ASEqualityHelpers.h"
 
 @implementation ASCollectionViewFlowLayoutInspector {
+  BOOL _delegateImplementsSizeForItemAtIndexPath;
   BOOL _delegateImplementsReferenceSizeForHeader;
   BOOL _delegateImplementsReferenceSizeForFooter;
 }
@@ -39,15 +40,28 @@
 - (void)didChangeCollectionViewDelegate:(id<ASCollectionViewDelegate>)delegate;
 {
   if (delegate == nil) {
+    _delegateImplementsSizeForItemAtIndexPath = NO;
     _delegateImplementsReferenceSizeForHeader = NO;
     _delegateImplementsReferenceSizeForFooter = NO;
   } else {
+    _delegateImplementsSizeForItemAtIndexPath = [delegate respondsToSelector:@selector(collectionView:layout:sizeForItemAtIndexPath:)];
     _delegateImplementsReferenceSizeForHeader = [delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForHeaderInSection:)];
     _delegateImplementsReferenceSizeForFooter = [delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForFooterInSection:)];
   }
 }
 
 #pragma mark - ASCollectionViewLayoutInspecting
+
+- (ASSizeRange)collectionView:(ASCollectionView *)collectionView constrainedSizeForNodeAtIndexPath:(NSIndexPath *)indexPath
+{
+  CGSize maxSize;
+  if (_delegateImplementsSizeForItemAtIndexPath) {
+    maxSize = [[self delegateForCollectionView:collectionView] collectionView:collectionView layout:_layout sizeForItemAtIndexPath:indexPath];
+  } else {
+    maxSize = [_layout itemSize];
+  }
+  return ASSizeRangeMake(CGSizeZero, maxSize);
+}
 
 - (ASSizeRange)collectionView:(ASCollectionView *)collectionView constrainedSizeForSupplementaryNodeOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
 {

@@ -33,6 +33,7 @@
     return nil;
   
   UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+  layout.itemSize = CGSizeMake(150.0, 50.0);
   layout.headerReferenceSize = CGSizeMake(50.0, 50.0);
   layout.footerReferenceSize = CGSizeMake(50.0, 50.0);
   
@@ -124,8 +125,24 @@
   [context completeBatchFetching:YES];
 }
 
-- (UIEdgeInsets)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
+- (UIEdgeInsets)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section
+{
   return UIEdgeInsetsMake(20.0, 20.0, 20.0, 20.0);
+}
+
+- (CGFloat)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section
+{
+  return 50.0;
+}
+
+- (CGFloat)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section
+{
+  return 10.0;
+}
+
+- (CGSize)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+  return CGSizeMake(self.view.bounds.size.width, 200.0);
 }
 
 @end

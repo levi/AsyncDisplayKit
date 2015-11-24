@@ -16,6 +16,11 @@
 @protocol ASCollectionViewLayoutInspecting <NSObject>
 
 /**
+ * Provides the constrained size the layout uses to measure the cell item at the given index path
+ */
+- (ASSizeRange)collectionView:(ASCollectionView *)collectionView constrainedSizeForNodeAtIndexPath:(NSIndexPath *)indexPath;
+
+/**
  * Asks the inspector to provide a constrained size range for the given supplementary node.
  */
 - (ASSizeRange)collectionView:(ASCollectionView *)collectionView constrainedSizeForSupplementaryNodeOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath;

@@ -406,6 +406,8 @@
 
 @optional
 
+- (CGSize)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath;
+
 /**
  * Passthrough support to UICollectionViewDelegateFlowLayout sectionInset behavior.
  *
@@ -418,6 +420,10 @@
  *
  */
 - (UIEdgeInsets)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section;
+
+- (CGFloat)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section;
+
+- (CGFloat)collectionView:(ASCollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section;
 
 /**
  * Asks the delegate for the size of the header in the specified section.
