@@ -56,6 +56,8 @@ typedef NS_OPTIONS(NSUInteger, ASDisplayNodeMethodOverrides)
   CGFloat _contentsScaleForDisplay;
 
   ASLayout *_layout;
+  ASLayout *_layoutCandidate;
+
   ASSizeRange _constrainedSize;
   UIEdgeInsets _hitTestSlop;
   NSMutableArray *_subnodes;

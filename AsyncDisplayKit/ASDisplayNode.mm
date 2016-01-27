@@ -593,19 +593,19 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
   //  - we haven't already
   //  - the constrained size range is different
   if (!_flags.isMeasured || !ASSizeRangeEqualToSizeRange(constrainedSize, _constrainedSize)) {
-    _layout = [self calculateLayoutThatFits:constrainedSize];
+    _layoutCandidate = [self calculateLayoutThatFits:constrainedSize];
     _constrainedSize = constrainedSize;
     _flags.isMeasured = YES;
     [self calculatedLayoutDidChange];
   }
 
-  ASDisplayNodeAssertTrue(_layout.layoutableObject == self);
-  ASDisplayNodeAssertTrue(_layout.size.width >= 0.0);
-  ASDisplayNodeAssertTrue(_layout.size.height >= 0.0);
+  ASDisplayNodeAssertTrue(_layoutCandidate.layoutableObject == self);
+  ASDisplayNodeAssertTrue(_layoutCandidate.size.width >= 0.0);
+  ASDisplayNodeAssertTrue(_layoutCandidate.size.height >= 0.0);
 
   // we generate placeholders at measureWithSizeRange: time so that a node is guaranteed to have a placeholder ready to go
   // also if a node has no size, it should not have a placeholder
-  if (self.placeholderEnabled && [self _displaysAsynchronously] && _layout.size.width > 0.0 && _layout.size.height > 0.0) {
+  if (self.placeholderEnabled && [self _displaysAsynchronously] && _layoutCandidate.size.width > 0.0 && _layoutCandidate.size.height > 0.0) {
     if (!_placeholderImage) {
       _placeholderImage = [self placeholderImage];
     }
@@ -615,7 +615,7 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
     }
   }
 
-  return _layout;
+  return _layoutCandidate;
 }
 
 - (void)calculatedLayoutDidChange
@@ -777,7 +777,7 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
 
     CGRect oldBounds = self.bounds;
     CGSize oldSize = oldBounds.size;
-    CGSize newSize = _layout.size;
+    CGSize newSize = _layoutCandidate.size;
     
     if (! CGSizeEqualToSize(oldSize, newSize)) {
       self.bounds = (CGRect){ oldBounds.origin, newSize };
@@ -1626,13 +1626,13 @@ static BOOL ShouldUseNewRenderingRange = YES;
 - (ASLayout *)calculatedLayout
 {
   ASDisplayNodeAssertThreadAffinity(self);
-  return _layout;
+  return _layoutCandidate;
 }
 
 - (CGSize)calculatedSize
 {
   ASDisplayNodeAssertThreadAffinity(self);
-  return _layout.size;
+  return _layoutCandidate.size;
 }
 
 - (ASSizeRange)constrainedSizeForCalculatedLayout
@@ -1957,11 +1957,25 @@ static BOOL ShouldUseNewRenderingRange = YES;
   if (!_flags.isMeasured) {
     return;
   }
+  
+  if (self.nodeLoaded && _layout != nil && !ASObjectIsEqual(_layout, _layoutCandidate)) {
+    [UIView animateWithDuration:0.4 animations:^{
+      [self _positionSubnodesForLayout:_layoutCandidate];
+    }];
+  } else {
+    [self _positionSubnodesForLayout:_layoutCandidate];
+  }
 
+  _layout = _layoutCandidate;
+  _layoutCandidate = nil;
+}
+
+- (void)_positionSubnodesForLayout:(ASLayout *)layout
+{
   // Assume that _layout was flattened and is 1-level deep.
   ASDisplayNode *subnode = nil;
   CGRect subnodeFrame = CGRectZero;
-  for (ASLayout *subnodeLayout in _layout.sublayouts) {
+  for (ASLayout *subnodeLayout in layout.sublayouts) {
     ASDisplayNodeAssert([_subnodes containsObject:subnodeLayout.layoutableObject], @"Cached sublayouts must only contain subnodes' layout.  self = %@, subnodes = %@", self, _subnodes);
     CGPoint adjustedOrigin = subnodeLayout.position;
     if (isfinite(adjustedOrigin.x) == NO) {
