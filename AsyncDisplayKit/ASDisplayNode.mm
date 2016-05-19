@@ -20,7 +20,7 @@
 #import "_ASDisplayView.h"
 #import "_ASScopeTimer.h"
 #import "_ASCoreAnimationExtras.h"
-#import "ASDisplayNodeLayoutContext.h"
+#import "ASLayoutTransition.h"
 #import "ASDisplayNodeExtras.h"
 #import "ASTraitCollection.h"
 #import "ASEqualityHelpers.h"
@@ -613,19 +613,19 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
   ASLayout *newLayout = [self calculateLayoutThatFits:constrainedSize];
   
   if (ASHierarchyStateIncludesLayoutPending(_hierarchyState)) {
-    _pendingLayoutContext = [[ASDisplayNodeLayoutContext alloc] initWithNode:self
-                                                               pendingLayout:newLayout
-                                                      pendingConstrainedSize:constrainedSize
-                                                              previousLayout:previousLayout
-                                                     previousConstrainedSize:previousConstrainedSize];
+    _pendingLayoutContext = [[ASLayoutTransition alloc] initWithNode:self
+                                                       pendingLayout:newLayout
+                                              pendingConstrainedSize:constrainedSize
+                                                      previousLayout:previousLayout
+                                             previousConstrainedSize:previousConstrainedSize];
   } else {
-    ASDisplayNodeLayoutContext *layoutContext;
+    ASLayoutTransition *layoutContext;
     if (self.usesImplicitHierarchyManagement) {
-      layoutContext = [[ASDisplayNodeLayoutContext alloc] initWithNode:self
-                                                         pendingLayout:newLayout
-                                                pendingConstrainedSize:constrainedSize
-                                                        previousLayout:previousLayout
-                                               previousConstrainedSize:previousConstrainedSize];
+      layoutContext = [[ASLayoutTransition alloc] initWithNode:self
+                                                 pendingLayout:newLayout
+                                        pendingConstrainedSize:constrainedSize
+                                                previousLayout:previousLayout
+                                       previousConstrainedSize:previousConstrainedSize];
     }
     [self applyLayout:newLayout constrainedSize:constrainedSize layoutContext:layoutContext];
     [self _completeLayoutCalculation];
@@ -740,11 +740,11 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
         completion();
       }
       
-      _pendingLayoutContext = [[ASDisplayNodeLayoutContext alloc] initWithNode:self
-                                                                 pendingLayout:newLayout
-                                                        pendingConstrainedSize:constrainedSize
-                                                                previousLayout:previousLayout
-                                                       previousConstrainedSize:previousConstrainedSize];
+      _pendingLayoutContext = [[ASLayoutTransition alloc] initWithNode:self
+                                                         pendingLayout:newLayout
+                                                pendingConstrainedSize:constrainedSize
+                                                        previousLayout:previousLayout
+                                               previousConstrainedSize:previousConstrainedSize];
       [_pendingLayoutContext applySubnodeInsertions];
 
       _transitionContext = [[_ASTransitionContext alloc] initWithAnimation:animated
@@ -2351,7 +2351,7 @@ void recursivelyTriggerDisplayForLayer(CALayer *layer, BOOL shouldBlock)
 
 - (void)applyLayout:(ASLayout *)layout
     constrainedSize:(ASSizeRange)constrainedSize
-      layoutContext:(ASDisplayNodeLayoutContext *)layoutContext
+      layoutContext:(ASLayoutTransition *)layoutContext
 {
   ASDN::MutexLocker l(_propertyLock);
   _layout = layout;
