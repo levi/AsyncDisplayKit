@@ -139,12 +139,6 @@ extern BOOL CGPointIsNull(CGPoint point)
                                sublayouts:layout.sublayouts];
 }
 
-- (NSString *)description
-{
-    return [NSString stringWithFormat:@"<<ASLayout: %p>, position = %@; size = %@; constrainedSizeRange = %@>",
-            self, NSStringFromCGPoint(self.position), NSStringFromCGSize(self.size), NSStringFromASSizeRange(self.constrainedSizeRange)];
-}
-
 #pragma mark - Layout Flattening
 
 - (ASLayout *)filteredNodeLayoutTree
@@ -216,6 +210,43 @@ extern BOOL CGPointIsNull(CGPoint point)
   subnodeFrame.size = adjustedSize;
   
   return subnodeFrame;
+}
+
+#pragma mark - Description
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<<ASLayout: %p>, layoutable = %@; position = %@; size = %@; constrainedSizeRange = %@>",
+            self, self.layoutableObject, NSStringFromCGPoint(self.position), NSStringFromCGSize(self.size), NSStringFromASSizeRange(self.constrainedSizeRange)];
+}
+
+- (NSString *)recursiveDescription
+{
+  return [self _recursiveDescriptionOfLayout:self level:0];
+}
+
+- (NSString *)_recursiveDescriptionOfLayout:(ASLayout *)layout level:(NSUInteger)level
+{
+  NSString *description = [[self _descriptionIndents:level] stringByAppendingString:[layout description]];
+  for (ASLayout *sublayout in layout.sublayouts) {
+    description = [description stringByAppendingString:@"\n"];
+    description = [description stringByAppendingString:[self _recursiveDescriptionOfLayout:sublayout level:level + 1]];
+  }
+  return description;
+}
+
+- (NSString *)_descriptionIndents:(NSUInteger)indents
+{
+  if (indents == 0) {
+    return @"";
+  }
+
+  NSMutableString *description = [NSMutableString string];
+  for (NSUInteger i = 0; i < indents; i++) {
+    [description appendString:@"    |"];
+  }
+  [description appendString:@" "];
+  return description;
 }
 
 @end
